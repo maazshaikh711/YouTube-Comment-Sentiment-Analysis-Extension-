@@ -35,8 +35,8 @@ stages:
       size: 1009639
     - path: src/data_preprocessing.py
       hash: md5
-      md5: 78f60839bea2da0dc35f7f49eda2f8bb
-      size: 3737
+      md5: 085f75a1ac88f71f830f2e31c3f35bdf
+      size: 3718
     outs:
     - path: data/interim
       hash: md5
@@ -52,11 +52,43 @@ stages:
       size: 4539269
     - path: src/feature_extraction.py
       hash: md5
-      md5: 4b349205433244304755ed8ccaad869c
-      size: 3376
+      md5: fe3a632b9fffe9b6099bf61066b4f511
+      size: 3364
     outs:
     - path: data/processed
       hash: md5
       md5: 66c6dce950f7ed85234f5320873c82d5.dir
       size: 1042985602
       nfiles: 1
+    - path: models
+      hash: md5
+      md5: 31444c544d02834173a682a1e036434b.dir
+      size: 356552
+      nfiles: 1
+  model_building:
+    cmd: python src/model_building.py
+    deps:
+    - path: data/processed
+      hash: md5
+      md5: 66c6dce950f7ed85234f5320873c82d5.dir
+      size: 1042985602
+      nfiles: 1
+    - path: src/model_building.py
+      hash: md5
+      md5: 0b5c2f45615db295419b3cf325747e8e
+      size: 3099
+    params:
+      params.yaml:
+        model_building.class_weight: balanced
+        model_building.colsample_bytree: 0.7616387832635141
+        model_building.learning_rate: 0.040414882180645394
+        model_building.max_depth: 11
+        model_building.min_child_samples: 23
+        model_building.n_estimators: 980
+        model_building.num_class: 3
+        model_building.num_leaves: 79
+        model_building.objective: multiclass
+        model_building.random_state: 42
+        model_building.reg_alpha: 1.8391205366209559e-06
+        model_building.reg_lambda: 0.0005919096233992369
+        model_building.subsample: 0.9653126342291365

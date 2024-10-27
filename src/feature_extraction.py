@@ -1,6 +1,5 @@
 import numpy as np
 import pandas as pd
-import yaml
 import logging
 from sklearn.feature_extraction.text import TfidfVectorizer
 from pathlib import Path
