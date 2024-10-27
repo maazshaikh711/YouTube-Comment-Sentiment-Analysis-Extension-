@@ -9,3 +9,13 @@ stages:
     - data_ingestion.random_state
     outs:
     - data/raw
+
+  data_preprocessing:
+    cmd: python src/data_preprocessing.py
+    deps:
+    - data/raw/train.csv
+    - data/raw/validation.csv
+    - data/raw/test.csv
+    - src/data_preprocessing.py
+    outs:
+    - data/interim
