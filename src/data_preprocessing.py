@@ -35,6 +35,8 @@ def preprocess_and_create_features(df: pd.DataFrame) -> None:
 
         df['comment'] = df['comment'].str.strip()
 
+        df.dropna(inplace=True)
+
         # Lowercase
         df['comment'] = df['comment'].str.lower()
 

@@ -1,8 +1,9 @@
 import logging
 import pandas as pd
 import yaml
-from typing import Dict
+from typing import Dict, Any
 from pathlib import Path
+import joblib
 
 
 PARAMS_PATH = Path(__file__).parent.parent / "params.yaml"
@@ -200,4 +201,31 @@ def save_data(logger: Logger, data: pd.DataFrame, data_path: Path, filename: str
         logger.info(f"Data saved successfully to {full_path}.")
     except Exception as e:
         logger.error(f"Error saving data to {full_path}: {e}")
+        raise e
+    
+
+def save_model(logger: Logger, model: Any, model_path: Path, modelname: str) -> None:
+    """
+    Save a model to a given directory.
+
+    Parameters
+    ----------
+    model : Any
+        The model to save.
+    model_path : Path
+        The directory to save the model to.
+    modelname : str
+        The name of the model to save the model as.
+
+    Returns
+    -------
+    None
+    """
+    try:
+        logger.info(f"Saving model {modelname}")
+        model_path.mkdir(parents=True, exist_ok=True)
+        joblib.dump(model, model_path / f'{modelname}.joblib')
+        logger.info(f"{modelname} saved successfully to {model_path}.")
+    except Exception as e:
+        logger.error(f"Error saving {modelname} to {model_path}: {e}")
         raise e

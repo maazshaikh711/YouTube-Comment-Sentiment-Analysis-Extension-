@@ -19,3 +19,11 @@ stages:
     - src/data_preprocessing.py
     outs:
     - data/interim
+
+  feature_extraction:
+    cmd: python src/feature_extraction.py
+    deps:
+    - data/interim/train_processed.csv
+    - src/feature_extraction.py
+    outs:
+    - data/processed
