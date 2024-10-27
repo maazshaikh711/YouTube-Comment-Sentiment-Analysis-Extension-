@@ -62,9 +62,9 @@ stages:
       nfiles: 1
     - path: models
       hash: md5
-      md5: 31444c544d02834173a682a1e036434b.dir
-      size: 356552
-      nfiles: 1
+      md5: cb69281b4e8136964739c46187b43b09.dir
+      size: 548900
+      nfiles: 2
   model_building:
     cmd: python src/model_building.py
     deps:
@@ -89,6 +89,6 @@ stages:
         model_building.num_leaves: 79
         model_building.objective: multiclass
         model_building.random_state: 42
-        model_building.reg_alpha: 1.8391205366209559e-06
+        model_building.reg_alpha: 1.8391205366209558e-06
         model_building.reg_lambda: 0.0005919096233992369
         model_building.subsample: 0.9653126342291365
