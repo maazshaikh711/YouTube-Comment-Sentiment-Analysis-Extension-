@@ -201,7 +201,7 @@ def save_data(logger: Logger, data: pd.DataFrame, data_path: Path, filename: str
         logger.info(f"Data saved successfully to {full_path}.")
     except Exception as e:
         logger.error(f"Error saving data to {full_path}: {e}")
-        raise e
+        raise
     
 
 def save_model(logger: Logger, model: Any, model_path: Path, modelname: str) -> None:
@@ -228,4 +228,30 @@ def save_model(logger: Logger, model: Any, model_path: Path, modelname: str) -> 
         logger.info(f"{modelname} saved successfully to {model_path}.")
     except Exception as e:
         logger.error(f"Error saving {modelname} to {model_path}: {e}")
-        raise e
+        raise
+
+
+def load_model(logger: Logger, model_path: Path, modelname: str) -> Any:
+    """
+    Load a model from a given directory.
+
+    Parameters
+    ----------
+    model_path : Path
+        The directory containing the model.
+    modelname : str
+        The name of the model to load.
+
+    Returns
+    -------
+    Any
+        The loaded model.
+    """
+    try:
+        logger.info(f"Loading model {modelname}")
+        model = joblib.load(model_path / f'{modelname}.joblib')
+        logger.info(f"{modelname} loaded successfully from {model_path}.")
+        return model
+    except Exception as e:
+        logger.error(f"Error loading {modelname} from {model_path}: {e}")
+        raise

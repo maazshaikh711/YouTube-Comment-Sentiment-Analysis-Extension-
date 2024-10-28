@@ -88,12 +88,10 @@ def main() -> None:
         # Load the data
         data_path = Path(__file__).parent.parent / "data"
         train_data = load_data(logger, data_path  / "raw" / "train.csv")
-        validation_data = load_data(logger, data_path  / "raw" / "validation.csv")
         test_data = load_data(logger, data_path  / "raw" / "test.csv")
 
         # Normalize the text
         preprocess_and_create_features(train_data)
-        preprocess_and_create_features(validation_data)
         preprocess_and_create_features(test_data)
 
         # Create data/interim directory
@@ -102,7 +100,6 @@ def main() -> None:
 
         # Save the processed data
         save_data(logger, train_data, data_path, "train_processed.csv")
-        save_data(logger, validation_data, data_path, "validation_processed.csv")
         save_data(logger, test_data, data_path, "test_processed.csv")
 
         logger.info("Data processing pipeline completed successfully.")

@@ -59,10 +59,9 @@ def preprocess_data(df: pd.DataFrame, target_column: str) -> pd.DataFrame:
 def split_data(
     df: pd.DataFrame,
     target_column: str,
-    validation_size: float,
     test_size: float,
     random_state: int
-) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+) -> Tuple[pd.DataFrame, pd.DataFrame]:
     """
     Split the dataset into train, validation, and test sets with stratification on the target variable.
 
@@ -72,8 +71,6 @@ def split_data(
         The full dataset containing both features and the target column.
     target_column : str
         The name of the target column for stratification.
-    validation_size : float
-        The proportion of the dataset to include in the validation set.
     test_size : float
         The proportion of the dataset to include in the test set.
     random_state : int
@@ -82,35 +79,24 @@ def split_data(
     Returns
     -------
     Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]
-        The train, validation, and test sets, each containing both features and target data.
+        The train and test sets, each containing both features and target data.
     """
     try:
-        logger.info(f"Splitting data with validation size {validation_size} and test size {test_size}")
+        logger.info(f"Splitting data with test size {test_size}")
 
         # Separate features and target variable
         X = df.drop(columns=[target_column])
         y = df[target_column]
 
-        # Split data into training and temporary sets with stratification
-        X_train, X_temp, y_train, y_temp = train_test_split(
-            X, y, test_size=validation_size + test_size, random_state=random_state, stratify=y
-        )
-        
-        # Calculate adjusted test size for the second split
-        adjusted_test_size = test_size / (validation_size + test_size)
-        
-        # Split the temporary set into validation and test sets with stratification
-        X_val, X_test, y_val, y_test = train_test_split(
-            X_temp, y_temp, test_size=adjusted_test_size, random_state=random_state, stratify=y_temp
-        )
+        # Split data into training and test sets with stratification
+        X_train, X_test, y_train, y_test = train_test_split(X, y,test_size=test_size, random_state=random_state, stratify=y)
         
         # Combine X and y back into DataFrames for each split
         train_data = pd.concat([X_train, y_train], axis=1)
-        val_data = pd.concat([X_val, y_val], axis=1)
         test_data = pd.concat([X_test, y_test], axis=1)
 
-        logger.info(f"Data split completed: {len(train_data)} train records, {len(val_data)} validation records, {len(test_data)} test records.")
-        return train_data, val_data, test_data
+        logger.info(f"Data split completed: {len(train_data)} train records and {len(test_data)} test records.")
+        return train_data, test_data
 
     except Exception as e:
         logger.error(f"Error during data splitting: {str(e)}")
@@ -148,15 +134,13 @@ def main() -> None:
         final_df = preprocess_data(df, target_column)
 
         # Split the data into train and test sets
-        validation_size = params['validation_size']
-        test_size = params['test_size']
+        test_size = float(params['test_size'])
         random_state = params['random_state']
-        train_data, validation_data, test_data = split_data(final_df, target_column, validation_size, test_size, random_state)
+        train_data, test_data = split_data(final_df, target_column, test_size, random_state)
 
         # Save the datasets
         data_path = Path(__file__).parent.parent / "data" / "raw"
         save_data(logger, train_data, data_path, "train.csv")
-        save_data(logger, validation_data, data_path, "validation.csv")
         save_data(logger, test_data, data_path, "test.csv")
 
         logger.info("Data ingestion pipeline completed successfully.")

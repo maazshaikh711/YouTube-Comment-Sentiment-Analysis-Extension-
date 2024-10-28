@@ -8,31 +8,30 @@ from utils import Logger, load_params, load_data, save_model
 # Initialize logger
 logger = Logger('model_building', logging.INFO)
 
-def prepare_training_data(train_data: pd.DataFrame) -> Tuple[pd.DataFrame, pd.Series]:
+def prepare_training_data(X: pd.DataFrame, y: pd.Series) -> Tuple[pd.DataFrame, pd.Series]:
     """
-    Prepare training data by separating features and the target variable.
+    Prepare training data by verifying features and the target variable.
 
     Parameters
     ----------
-    train_data : pd.DataFrame
-        The training data containing features and the target variable.
+    X : pd.DataFrame
+        The training data containing features.
+    y : pd.Series
+        The target variable.
 
     Returns
     -------
     X : pd.DataFrame
-        The features for training the model.
+        Verified features for training the model.
     y : pd.Series
-        The target variable.
+        Verified target variable.
     """
     logger.info("Preparing training data...")
     try:
-        # Check for and drop any duplicate 'category' columns in the features
-        if 'category' in train_data.columns:
-            y = train_data['category'].astype(int)
-            X = train_data.drop(['category'], axis=1)
-        else:
-            raise KeyError("The 'category' column (target variable) is missing from the data.")
-        
+        # Confirm that data shapes are consistent
+        if X.shape[0] != y.shape[0]:
+            raise ValueError("Mismatch between feature rows and target rows")
+
         logger.info("Data preparation completed successfully.")
         return X, y
     except Exception as e:
@@ -88,18 +87,21 @@ def main() -> None:
         # Load the parameters
         params = load_params(logger)['model_building']
 
-        # Load the data
-        path = Path(__file__).parent.parent
-        train_data = load_data(logger, path / 'data' / 'processed' / 'train_tfidf.csv')
+        # Define data path
+        path = Path(__file__).parent.parent / 'data' / 'processed'
+
+        # Load features and target separately
+        X = load_data(logger, path / 'train_tfidf.csv')
+        y = load_data(logger, path / 'train_target.csv')['category'].astype(int)
 
         # Prepare features and target variable
-        X, y = prepare_training_data(train_data)
+        X, y = prepare_training_data(X, y)
 
         # Train the model
         model = train_model(X, y, params)
 
         # Save the model
-        save_model(logger, model, path / 'models', 'lgbm_model')
+        save_model(logger, model, path.parent.parent / 'models', 'lgbm_model')
 
         logger.info("Model building pipeline completed successfully.")
     except Exception as e:

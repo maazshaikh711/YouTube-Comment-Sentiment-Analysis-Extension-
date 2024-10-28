@@ -4,7 +4,6 @@ stages:
     deps:
     - src/data_ingestion.py
     params:
-    - data_ingestion.validation_size
     - data_ingestion.test_size
     - data_ingestion.random_state
     outs:
@@ -14,7 +13,6 @@ stages:
     cmd: python src/data_preprocessing.py
     deps:
     - data/raw/train.csv
-    - data/raw/validation.csv
     - data/raw/test.csv
     - src/data_preprocessing.py
     outs:
@@ -27,7 +25,7 @@ stages:
     - src/feature_extraction.py
     outs:
     - data/processed
-    - models
+    - models/tfidf_vectorizer.joblib
 
   model_building:
     cmd: python src/model_building.py
@@ -48,3 +46,22 @@ stages:
     - model_building.objective
     - model_building.num_class
     - model_building.class_weight
+    outs:
+    - models/lgbm_model.joblib
+
+  model_evaluation:
+    cmd: python src/model_evaluation.py
+    deps:
+    - models/lgbm_model.joblib
+    - models/tfidf_vectorizer.joblib
+    - data/interim/test_processed.csv
+    - src/model_evaluation.py
+    outs:
+    - data/visualizations/confusion_matrix_Test_Data.png
+    - experiment_info.json
+
+  model_registration:
+    cmd: python src/register_model.py
+    deps:
+    - src/register_model.py
+    - experiment_info.json
