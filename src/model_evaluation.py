@@ -79,7 +79,7 @@ def log_confusion_matrix(cm: np.ndarray, dataset_name: str) -> None:
         logger.error(f"Error logging confusion matrix: {str(e)}")
         raise
 
-def save_model_info(run_id: str, path: Path, file_path: Path) -> None:
+def save_model_info(run_id: str, file_path: Path) -> None:
     """
     Save the model run ID and path to a JSON file.
 
@@ -87,8 +87,6 @@ def save_model_info(run_id: str, path: Path, file_path: Path) -> None:
     ----------
     run_id : str
         The ID of the MLflow run.
-    path : Path
-        The path to the model directory.
     file_path : Path
         The path to the JSON file to save the model information.
 
@@ -98,8 +96,8 @@ def save_model_info(run_id: str, path: Path, file_path: Path) -> None:
     """
     model_info = {
         'run_id': run_id,
-        'model_path': str(path / 'lgbm_model.joblib'),
-        'vectorizer_path': str(path / 'tfidf_vectorizer.joblib')
+        'model_path':'lgbm_model',
+        'vectorizer_path': 'tfidf_vectorizer'
     }
     try:
         with open(file_path, 'w') as file:
@@ -180,7 +178,7 @@ def main() -> None:
             log_confusion_matrix(cm, "Test_Data")
 
             # Save model info
-            save_model_info(run.info.run_id, model_dir, Path(__file__).parent.parent / 'experiment_info.json')
+            save_model_info(run.info.run_id, Path(__file__).parent.parent / 'experiment_info.json')
 
             # Set experiment tags
             mlflow.set_tag("model", "LightGBM")
