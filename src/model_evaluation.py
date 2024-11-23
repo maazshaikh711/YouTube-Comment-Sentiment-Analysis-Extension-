@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
 import logging
-import dagshub
 import mlflow
 import mlflow.sklearn
 from mlflow.models.signature import infer_signature
@@ -15,6 +14,7 @@ from typing import Dict, Tuple
 import lightgbm as lgb
 import json
 from utils import Logger, load_params, load_data, load_model
+from dotenv import load_dotenv
 
 # Initialize Logger
 logger = Logger('model_evaluation', logging.INFO)
@@ -125,7 +125,16 @@ def main() -> None:
     """
 
     # Initialize Dagshub and set experiment
-    dagshub.init(repo_owner='dakshvandanarathi', repo_name='YT-Sentiment-Analyser', mlflow=True)
+    if not os.getenv("GITHUB_ACTIONS"):
+        load_dotenv()
+
+    dagshub_token = os.getenv("DAGSHUB_PAT")
+    if not dagshub_token:
+        raise EnvironmentError("DAGSHUB_PAT environment variable is not set")
+
+    os.environ["MLFLOW_TRACKING_USERNAME"] = dagshub_token
+    os.environ["MLFLOW_TRACKING_PASSWORD"] = dagshub_token
+    mlflow.set_tracking_uri("https://dagshub.com/dakshvandanarathi/YT-Sentiment-Analyser.mlflow")
     mlflow.set_experiment('dvc-pipeline-runs')
     
     try:

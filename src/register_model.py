@@ -3,7 +3,8 @@ import mlflow
 import logging
 from pathlib import Path
 from utils import Logger
-import dagshub
+import os
+from dotenv import load_dotenv
 
 # Initialize Logger
 logger = Logger('register_model', logging.INFO)
@@ -110,7 +111,18 @@ def main() -> None:
     None
     """
     try:
-        dagshub.init(repo_owner='dakshvandanarathi', repo_name='YT-Sentiment-Analyser', mlflow=True)
+        # Initialize Dagshub
+        if not os.getenv("GITHUB_ACTIONS"):
+            load_dotenv()
+
+        dagshub_token = os.getenv("DAGSHUB_PAT")
+        if not dagshub_token:
+            raise EnvironmentError("DAGSHUB_PAT environment variable is not set")
+
+        os.environ["MLFLOW_TRACKING_USERNAME"] = dagshub_token
+        os.environ["MLFLOW_TRACKING_PASSWORD"] = dagshub_token
+        mlflow.set_tracking_uri("https://dagshub.com/dakshvandanarathi/YT-Sentiment-Analyser.mlflow")
+
         model_info_path = 'experiment_info.json'
         model_info = load_model_info(model_info_path)
 
