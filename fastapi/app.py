@@ -15,6 +15,8 @@ import pandas as pd
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 import matplotlib.dates as mdates
+import os
+from dotenv import load_dotenv
 
 app = FastAPI()
 
@@ -96,6 +98,54 @@ def preprocess_comment(comment: str) -> tuple[str, int, int, float]:
     except Exception as e:
         print(f"Error in preprocessing comment: {e}")
         return comment, 0, 0, 0  # Return default values in case of error
+    
+
+# Function to clean and limit comments
+def clean_and_limit_comments(comments: list[Comment], max_tokens: int = 2000) -> str:
+    """
+    Clean and limit the comments to a maximum token count.
+
+    :param comments: List of Comment objects to be processed.
+    :param max_tokens: Maximum token count allowed in the output.
+    :return: A single string containing the cleaned and limited comments without \n.
+    """
+    # Extract and clean the text from each comment
+    cleaned_comments = []
+    for comment in comments:
+        sanitized_comment = re.sub(r"[^\S\r\n]+", " ", comment.text)  # Remove extra spaces
+        sanitized_comment = sanitized_comment.replace("\\", "").strip()  # Remove backslashes
+        cleaned_comments.append(sanitized_comment)
+
+    # Format comments into a numbered list
+    formatted_comments = [f"{i + 1}. {comment}" for i, comment in enumerate(cleaned_comments)]
+
+    # Join comments into a single string
+    combined_comments = "\n".join(formatted_comments)
+
+    # Remove \n characters
+    combined_comments = combined_comments.replace("\n", " ")
+
+    # Token count estimation (adjust if necessary)
+    # Assume 1 token ≈ 4 characters (change as needed based on your LLM's tokenizer).
+    estimated_tokens = len(combined_comments) // 4
+
+    if estimated_tokens <= max_tokens:
+        return combined_comments
+
+    # If token count exceeds the limit, truncate comments
+    truncated_comments = []
+    current_tokens = 0
+
+    for comment in formatted_comments:
+        comment_tokens = len(comment) // 4
+        if current_tokens + comment_tokens > max_tokens:
+            break
+        truncated_comments.append(comment)
+        current_tokens += comment_tokens
+
+    truncated_combined_comments = " ".join(truncated_comments).replace("\n", " ")
+    return truncated_combined_comments
+
 
 # Load the model and vectorizer from the model registry
 def load_model_from_registry(model_name: str, vectorizer_name: str):
@@ -116,6 +166,17 @@ def load_model_from_registry(model_name: str, vectorizer_name: str):
     """
     try:
         # Set the MLflow tracking URI to DagsHub or your desired MLflow server
+        # Set up DagsHub credentials for MLflow tracking
+        # Load .env file only if not in GitHub Actions
+        if not os.getenv("GITHUB_ACTIONS"):
+            load_dotenv()
+
+        dagshub_token = os.getenv("DAGSHUB_PAT")
+        if not dagshub_token:
+            raise EnvironmentError("DAGSHUB_PAT environment variable is not set")
+
+        os.environ["MLFLOW_TRACKING_USERNAME"] = dagshub_token
+        os.environ["MLFLOW_TRACKING_PASSWORD"] = dagshub_token
         mlflow.set_tracking_uri("https://dagshub.com/dakshvandanarathi/YT-Sentiment-Analyser.mlflow")
         
         # Initialize the MLflow client
@@ -281,6 +342,17 @@ async def generate_trend_graph(sentiment_data: SentimentData):
         return StreamingResponse(img_io, media_type="image/png")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to generate sentiment trend graph: {str(e)}")
+
+
+# API route for cleaning and limiting comments
+@app.post("/process_comments")
+async def process_comments(input: CommentsInput):
+    try:
+        # Process the comments and limit to 2000 tokens
+        processed_comments = clean_and_limit_comments(input.comments, max_tokens=2000)
+        return {"processed_comments": processed_comments}
+    except Exception as e:
+        return {"error": str(e)}
     
 
 if __name__ == "__main__":
