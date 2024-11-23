@@ -30,7 +30,6 @@ app.add_middleware(
 )
 
 # Pydantic models for request validation
-# Define Pydantic models
 class Comment(BaseModel):
     text: str
     timestamp: str
@@ -43,14 +42,12 @@ class CommentsInput(BaseModel):
 class SentimentData(BaseModel):
     sentiment_data: list
 
-class SentimentCounts(BaseModel):
-    sentiment_counts: dict
 
-# Pydantic model for the comment structure
 class CommentResponse(BaseModel):
     comment: str
     sentiment: str
     timestamp: str
+
 
 # Define the preprocessing function
 def preprocess_comment(comment: str) -> tuple[str, int, int, float]:
@@ -183,12 +180,12 @@ def load_model_from_registry(model_name: str, vectorizer_name: str):
         client = MlflowClient()
         
         # Get the latest version of the model
-        latest_model_version = client.get_latest_versions(model_name, stages=["staging"])[0].version
+        latest_model_version = client.get_latest_versions(model_name, stages=["production"])[0].version
         model_uri = f"models:/{model_name}/{latest_model_version}"
         model = mlflow.pyfunc.load_model(model_uri)
         
         # Get the latest version of the vectorizer
-        latest_vectorizer_version = client.get_latest_versions(vectorizer_name, stages=["staging"])[0].version
+        latest_vectorizer_version = client.get_latest_versions(vectorizer_name, stages=["production"])[0].version
         vectorizer_uri = f"models:/{vectorizer_name}/{latest_vectorizer_version}"
         vectorizer = mlflow.sklearn.load_model(vectorizer_uri)
         
@@ -203,11 +200,27 @@ model, vectorizer = load_model_from_registry("sentiment_analysislgbm_model", "se
 
 
 @app.get("/")
-async def home():
+async def home() -> dict[str, str]:
+    """
+    The root endpoint of the API.
+
+    Returns:
+    - dict[str, str]: A dictionary containing a welcome message.
+    """
     return {"message": "Welcome to the FastAPI app"}
 
+
 @app.post("/predict_with_timestamps", response_model=None)
-async def predict_with_timestamps(data: CommentsInput):
+async def predict_with_timestamps(data: CommentsInput) -> JSONResponse:
+    """
+    Predicts the sentiment of each comment in the provided list of comments.
+
+    Args:
+    - data (CommentsInput): A JSON object containing a list of comments.
+
+    Returns:
+    - A JSONResponse object with a list of dictionaries containing the original comment, predicted sentiment, and timestamp.
+    """
     comments_data = data.comments
 
     if not comments_data:
@@ -220,7 +233,7 @@ async def predict_with_timestamps(data: CommentsInput):
         # Preprocess each comment before vectorizing
         preprocessed_comments = [preprocess_comment(comment) for comment in comments]
         
-         # Convert the results into a DataFrame for further processing
+        # Convert the results into a DataFrame for further processing
         processed_df = pd.DataFrame(preprocessed_comments, columns=["preprocessed_comment", "word_count", "char_count", "avg_word_length"])
         
         # Transform comments using the vectorizer
@@ -250,6 +263,28 @@ async def predict_with_timestamps(data: CommentsInput):
 
 @app.post("/generate_wordcloud")
 async def generate_wordcloud(data: CommentsInput):
+    """
+    Generate a word cloud image from the provided comments.
+
+    This endpoint takes a list of comments as input, preprocesses the comments,
+    and generates a word cloud image based on the preprocessed text. The word
+    cloud is returned as a PNG image.
+
+    Parameters
+    ----------
+    data : CommentsInput
+        A Pydantic model containing a list of Comment objects.
+
+    Returns
+    -------
+    StreamingResponse
+        A streaming response containing the generated word cloud image in PNG format.
+
+    Raises
+    ------
+    HTTPException
+        If no comments are provided or if an error occurs during word cloud generation.
+    """
     comments_data = data.comments
     try:
         comments = [item.text for item in comments_data]
@@ -283,8 +318,21 @@ async def generate_wordcloud(data: CommentsInput):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Word cloud generation failed: {str(e)}")
 
+
 @app.post("/generate_trend_graph")
 async def generate_trend_graph(sentiment_data: SentimentData):
+    """
+    Generate a sentiment trend graph over time.
+
+    Takes a list of sentiment data points in the form of a list of dictionaries, each with a 'timestamp' and 'sentiment' key.
+    The sentiment values are expected to be either -1, 0, or 1, and the timestamps should be in any format that can be parsed by pandas.
+
+    The function will return a PNG image of the sentiment trend graph as a response.
+
+    :param sentiment_data: A list of dictionaries, each containing a 'timestamp' and 'sentiment' key.
+    :return: A PNG image of the sentiment trend graph.
+    """
+    
     try:
         if not sentiment_data.sentiment_data:
             raise HTTPException(status_code=400, detail="No sentiment data provided")
@@ -346,10 +394,28 @@ async def generate_trend_graph(sentiment_data: SentimentData):
 
 # API route for cleaning and limiting comments
 @app.post("/process_comments")
-async def process_comments(input: CommentsInput):
+async def process_comments(input: CommentsInput) -> dict[str, str]:
+    """
+    API route for cleaning and limiting comments.
+
+    This API takes a list of comments in the request body and returns a single string
+    containing the cleaned and limited comments.
+
+    The comments are cleaned by removing extra spaces, backslashes, and newline characters,
+    and then formatted into a numbered list. The list is then joined into a single string
+    without any newline characters.
+
+    The comments are limited to a maximum of 2000 tokens. If the comments exceed this limit,
+    they are truncated to fit within the limit.
+
+    :param input: The list of comments to process
+    :type input: CommentsInput
+    :return: A dictionary containing the processed comments
+    :rtype: dict[str, str]
+    """
     try:
         # Process the comments and limit to 2000 tokens
-        processed_comments = clean_and_limit_comments(input.comments, max_tokens=2000)
+        processed_comments: str = clean_and_limit_comments(input.comments, max_tokens=2000)
         return {"processed_comments": processed_comments}
     except Exception as e:
         return {"error": str(e)}
