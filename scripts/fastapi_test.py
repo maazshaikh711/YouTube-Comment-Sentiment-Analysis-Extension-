@@ -1,6 +1,6 @@
 import requests
 
-BASE_URL = "http://localhost:8000"  # Replace with your deployed URL if needed
+BASE_URL = "http://localhost:5000"  # Replace with your deployed URL if needed
 
 
 def test_predict_with_timestamps_endpoint():
