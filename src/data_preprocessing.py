@@ -2,7 +2,7 @@ import pandas as pd
 import re
 import nltk
 import logging
-from nltk.corpus import stopwords
+from nltk.corpus import stopwords, wordnet
 from nltk.stem import WordNetLemmatizer
 from pathlib import Path
 from utils import Logger, load_data, save_data
@@ -109,6 +109,6 @@ def main() -> None:
 
 # Run the script
 if __name__ == "__main__":
-    # nltk.download('wordnet')
+    nltk.download('wordnet')
     nltk.download('stopwords')
     main()
