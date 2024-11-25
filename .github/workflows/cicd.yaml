@@ -107,3 +107,33 @@ jobs:
         if: success()
         run: |
           docker push public.ecr.aws/m3t3s7a1/yt-plugin:latest
+
+      # Zip the required files
+      - name: Zip files for deployment
+        if: success()
+        run: |
+          zip -r deployment.zip appspec.yml deploy/scripts/install_dependencies.sh deploy/scripts/start_docker.sh
+
+      # Upload the ZIP file to S3
+      - name: Upload ZIP and secret to S3
+        if: success()
+        env:
+          DAGSHUB_PAT: ${{ secrets.DAGSHUB_PAT }}
+        run: |
+          aws s3 cp deployment.zip s3://ytcodedeploybucket/deployment.zip
+          echo "DAGSHUB_PAT=${{ secrets.DAGSHUB_PAT }}" > /tmp/dagshub.env
+          aws s3 cp /tmp/dagshub.env s3://ytcodedeploybucket/dagshub.env
+
+      # Deploy to AWS CodeDeploy using the uploaded ZIP file
+      - name: Deploy to AWS CodeDeploy
+        if: success()
+        run: |
+          aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws deploy create-deployment \
+            --application-name YT-Plugin \
+            --deployment-config-name CodeDeployDefault.OneAtATime \
+            --deployment-group-name YT-Plugin-Deployment-Group \
+            --s3-location bucket=ytcodedeploybucket,key=deployment.zip,bundleType=zip \
+            --file-exists-behavior OVERWRITE \
+            --region eu-north-1
