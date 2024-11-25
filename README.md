@@ -80,7 +80,12 @@ The project follows a well-defined structure that organizes code, data, models, 
 └── 📁sentiment_analysis
     └── 📁.github
         └── 📁workflows
-            └── 📝 cicd.yaml
+            └── ⚙️ cicd.yaml
+    └── 📁deploy
+        └── 📁scripts
+            └── download_env.sh
+            └── install_dependencies.sh
+            └── start_docker.sh
     └── 📁data
         └── 📁interim
             └── test_processed.csv
@@ -124,6 +129,7 @@ The project follows a well-defined structure that organizes code, data, models, 
     └── .env
     └── .gitignore
     └── 🐳Dockerfile
+    └── 📝appspec.yml
     └── dvc.lock
     └── 📝dvc.yaml
     └── experiment_info.json
@@ -245,3 +251,123 @@ This `Dockerfile` defines a multi-stage build for creating a Docker image to dep
    - **Purpose**: The final image used to run the application, which is based on a slimmed-down Python image.
 
 The use of a multi-stage build optimizes the Docker image by separating the build and runtime environments. The builder stage contains all the tools and dependencies needed to install libraries, while the runtime image only includes the essential libraries and application code, making the final image smaller and more efficient.
+
+### ⚙️ **CICD Pipeline**
+
+This GitHub Actions pipeline automates the deployment and testing of a machine learning model as a FastAPI service with integration to AWS services such as S3, ECR, and CodeDeploy.
+
+---
+
+#### 🔍 **Pipeline Steps**
+
+1. **Checkout Code**
+   : Pulls the latest code from the GitHub repository using `actions/checkout@v3`.
+
+2. **Set up Python**
+   : Configures Python 3.10 using `actions/setup-python@v2` for compatibility with the required dependencies.
+
+3. **Cache pip Dependencies**
+   : Caches Python package installations for faster subsequent runs using `actions/cache@v3`.
+
+4. **Install Dependencies**
+   : Installs all the required libraries listed in `requirements.txt`.
+
+#### 🔄 **Data Versioning and Processing**
+
+5. **Run Pipeline**
+   : Executes the DVC pipeline (`dvc repro`) to preprocess and prepare data, with AWS credentials and DAGsHub authentication passed as environment variables.
+
+6. **Push DVC-tracked Data**
+   : Uploads processed data and outputs tracked by DVC to a remote storage (AWS S3).
+
+
+#### 📝 **Code Management**
+
+7. **Configure Git**
+   : Sets up Git user details for commits by GitHub Actions.
+
+8. **Add and Commit Changes**
+   : Stages and commits changes, such as updated DVC outputs, to the repository.
+
+9. **Push Changes**
+   : Pushes committed changes back to the repository.
+
+#### 🧪 **Testing and Validation**
+
+10. **Run Model Loading Test**
+    : Verifies the model loading script with `pytest` to ensure the model loads correctly.
+
+11. **Run Model Performance Test**
+    : Validates the model’s performance by executing a performance test script.
+
+12. **Run FastAPI Tests**
+    : Tests the FastAPI endpoints for functionality using `pytest`.
+
+#### 🚀 **Deployment Steps**
+
+13. **Start FastAPI App**
+    : Launches the FastAPI application in the background using `nohup`.
+
+14. **Stop FastAPI App**
+    : Ensures the running FastAPI application is terminated after testing.
+
+15. **Login to AWS ECR**
+    : Authenticates Docker with AWS Elastic Container Registry (ECR) for image uploads.
+
+16. **Build Docker Image**
+    : Builds a Docker image named `yt-plugin` for the FastAPI application.
+
+17. **Tag Docker Image**
+    : Tags the built Docker image for ECR.
+
+18. **Push Docker Image to AWS ECR**
+    : Uploads the Docker image to AWS ECR for containerized deployment.
+
+
+#### 📦 **Packaging for Deployment**
+
+19. **Zip Files for Deployment**
+    : Compresses deployment files (`appspec.yml` and necessary scripts) into a `deployment.zip`.
+
+20. **Upload ZIP and Secret to S3** : Uploads the deployment package and environment variables to an S3 bucket.
+
+
+#### 📤 **AWS CodeDeploy Integration**
+
+21. **Deploy to AWS CodeDeploy** : Initiates deployment through AWS CodeDeploy, specifying the application, deployment group, and configuration settings.
+
+--- 
+
+This pipeline ensures seamless integration and deployment by leveraging GitHub Actions, DVC, AWS services, and Docker, automating every step from preprocessing to deployment, while running rigorous tests at each stage.
+
+
+
+### 📁 **Deploy Directory**
+
+The `deploy` directory includes `scripts` folder which contains all necessary configuration files for deploying the application via AWS CodeDeploy.
+
+
+1. **download_env.sh** :
+    - Downloads environment variables (`dagshub.env`) from an S3 bucket.
+
+2. **install_dependencies.sh**  
+   - Installs Docker, AWS CLI, and other necessary utilities.  
+   - Configures Docker to run without `sudo` and enables it as a service.
+
+3. **start_docker.sh**  
+   - Loads environment variables and verifies them.  
+   - Logs in to AWS ECR and pulls the latest Docker image.  
+   - Stops and removes any existing container before starting a new one.  
+   - Cleans up sensitive files after deployment.
+
+
+### 📝 **appspec.yml**
+
+Defines deployment lifecycle hooks:
+
+- **BeforeInstall**: Runs `install_dependencies.sh` and `download_env.sh` to set up dependencies and environment variables.  
+- **ApplicationStart**: Executes `start_docker.sh` to pull and run the Docker container.
+
+--- 
+
+This setup ensures a smooth and automated deployment process, adhering to security and efficiency standards.
