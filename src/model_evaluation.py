@@ -166,11 +166,9 @@ def main() -> None:
             y_test = test_data['category'].values
 
             # Log model with signature
-            columns = list(vectorizer.get_feature_names_out()) + ['word_count', 'char_count', 'avg_word_length']
-            input_example = pd.DataFrame(X_test_tfidf[:3], columns=columns)
-            signature = infer_signature(input_example, model.predict(X_test_tfidf[:3]))
-            mlflow.sklearn.log_model(model, "lgbm_model", signature=signature, input_example=input_example)
-            signature = infer_signature(test_data['comment'][:1], test_tfidf[:1])
+            signature = infer_signature(X_test_tfidf, model.predict(X_test_tfidf))
+            mlflow.sklearn.log_model(model, "lgbm_model", signature=signature)
+            signature = infer_signature(test_data['comment'][0], test_tfidf[0])
             mlflow.sklearn.log_model(vectorizer, "tfidf_vectorizer", signature=signature)
 
             # Evaluate model
