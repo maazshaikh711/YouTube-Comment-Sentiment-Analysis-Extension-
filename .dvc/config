@@ -1,5 +1,5 @@
 [core]
-    remote = myremote
     autostage = true
+    remote = myremote
 ['remote "myremote"']
-    url = /Users/daksh/Desktop/remote
+    url = s3://ytcommentdvc
