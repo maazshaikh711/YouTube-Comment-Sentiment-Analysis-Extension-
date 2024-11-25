@@ -57,7 +57,7 @@ stages:
       nfiles: 2
     - path: models/tfidf_vectorizer.joblib
       hash: md5
-      md5: f4b3f40b10069819bdca99c46c880407
+      md5: 8f0f67a947c3162c667de024e5421eb8
       size: 356648
   model_building:
     cmd: python src/model_building.py
@@ -104,7 +104,7 @@ stages:
       size: 11650604
     - path: models/tfidf_vectorizer.joblib
       hash: md5
-      md5: f4b3f40b10069819bdca99c46c880407
+      md5: 8f0f67a947c3162c667de024e5421eb8
       size: 356648
     - path: src/model_evaluation.py
       hash: md5
@@ -117,14 +117,14 @@ stages:
       size: 22749
     - path: experiment_info.json
       hash: md5
-      md5: af069788c5bb5b42f8a9006f7b07f105
+      md5: 778403823e79072125bb6cbe8672fc3c
       size: 127
   model_registration:
     cmd: python src/register_model.py
     deps:
     - path: experiment_info.json
       hash: md5
-      md5: af069788c5bb5b42f8a9006f7b07f105
+      md5: 778403823e79072125bb6cbe8672fc3c
       size: 127
     - path: src/register_model.py
       hash: md5
