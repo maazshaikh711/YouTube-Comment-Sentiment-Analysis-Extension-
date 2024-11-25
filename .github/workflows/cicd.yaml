@@ -122,7 +122,7 @@ jobs:
       - name: Zip files for deployment
         if: success()
         run: |
-          zip -r deployment.zip appspec.yml deploy/scripts/install_dependencies.sh deploy/scripts/start_docker.sh
+          zip -r deployment.zip appspec.yml deploy/scripts/install_dependencies.sh deploy/scripts/start_docker.sh deploy/scripts/download_env.sh
 
       # Upload the ZIP file to S3
       - name: Upload ZIP and secret to S3
