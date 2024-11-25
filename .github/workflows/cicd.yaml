@@ -80,6 +80,17 @@ jobs:
           DAGSHUB_PAT: ${{ secrets.DAGSHUB_PAT }}
         run: nohup python fastapi/app.py &
 
+      - name: Wait for FastAPI to Start
+        run: |
+          for i in {1..10}; do
+            if curl -s http://localhost:5000/docs > /dev/null; then
+              echo "FastAPI is up!"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "FastAPI did not start in time" && exit 1
+
       - name: Run FastAPI tests
         run: pytest -p no:warnings -s scripts/fastapi_test.py
 
