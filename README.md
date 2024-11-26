@@ -53,6 +53,18 @@
 <a target="_blank" href="https://aws.amazon.com/ec2/">
     <img src="https://img.shields.io/badge/AWS%20EC2-Cloud%20Computing-FF9900?logo=amazon-aws" />
 </a>
+<a target="_blank" href="https://aws.amazon.com/codedeploy/">
+    <img src="https://img.shields.io/badge/AWS%20CodeDeploy-Deployment-FF9900?logo=amazon-aws" />
+</a>
+<a target="_blank" href="https://aws.amazon.com/s3/">
+    <img src="https://img.shields.io/badge/AWS%20S3-Storage-569A31?logo=amazon-aws" />
+</a>
+<a target="_blank" href="https://aws.amazon.com/elasticloadbalancing/">
+    <img src="https://img.shields.io/badge/AWS%20ELB%20-Load%20Balancing-232F3E?logo=amazon-aws" />
+</a>
+<a target="_blank" href="https://aws.amazon.com/autoscaling/">
+    <img src="https://img.shields.io/badge/AWS%20ASG%20Scaling-Scaling-FF4F8B?logo=amazon-aws" />
+</a>
 
 ## Table of Contents
 
@@ -61,15 +73,50 @@
 
 ## Project Overview
 
-This sentiment analysis project aims to classify YouTube comments into positive, neutral, or negative sentiments using machine learning techniques. The key components of the project include:
+This sentiment analysis project aims to classify YouTube comments into **positive**, **neutral**, or **negative** sentiments using advanced **machine learning techniques**. The project comprises the following key components:
 
-- **Model Training**: The project uses **LightGBM** as the base model for its high performance. Various feature extraction methods like **TF-IDF** and resampling techniques are employed to handle class imbalances and optimize model performance.
+### **Core Features**
+- **Model Training**: 
+  - The project uses **LightGBM** as the base model for its high performance and interpretability.
+  - Employs feature extraction techniques such as **TF-IDF** and handles class imbalances through **resampling techniques** to improve model robustness.
 
-- **Backend**: A **FastAPI** application serves the trained model for real-time predictions, exposing API endpoints to interact with the model.
+- **Backend**:
+  - A **FastAPI** application serves as the backend for real-time predictions, exposing RESTful API endpoints to interact with the trained model.
 
-- **MLflow & DVC**: **MLflow** is used for model tracking and versioning, while **DVC** is utilized for data and model version control, ensuring reproducibility and efficient pipeline management.
+- **MLflow, DVC & Dagshub**: 
+  - **MLflow** is leveraged for model tracking and versioning, ensuring seamless experiment management.
+  - **DVC** enables efficient data and model version control, improving pipeline reproducibility and collaboration.
+  - Experiments and model tracking are integrated with **Dagshub**, providing an interactive dashboard for managing model lifecycle and monitoring metrics.
 
-Additionally, this repository focuses on the **backend** of the project. For the **frontend**, a browser extension/plugin has been created to interact with the model. You can explore the [frontend repository here](https://github.com/DakshRathi/YT-Chrome-Plugin-Frontend).
+- **Frontend Integration**:
+  - A **Chrome Plugin** acts as the user-facing frontend, interacting with the backend for predictions.  
+  - Explore the [frontend repository here](https://github.com/DakshRathi/YT-Chrome-Plugin-Frontend).
+
+### **Deployment**
+- **Continuous Integration and Deployment (CI/CD)**:
+  - Managed through a `cicd.yaml` workflow in GitHub Actions to ensure automated testing, building, and deployment.
+  
+- **AWS Integration**:
+  - The backend is deployed on **AWS EC2** instances using **AWS CodeDeploy**.
+  - An **Elastic Load Balancer (ELB)** is set up to distribute traffic efficiently.
+  - **Auto Scaling Groups (ASG)** ensure high availability and scalability under varying loads.
+
+- **Containerization**:
+  - The entire backend is containerized using **Docker** for consistency across development and production environments.
+  - A **public Amazon Elastic Container Registry (ECR)** hosts the container image for easy access and deployment.
+
+### **Download the Docker Image**
+You can pull the latest version of the Docker image from the public Amazon ECR repository using the following command:
+
+```bash
+docker pull public.ecr.aws/m3t3s7a1/yt-plugin:latest
+```
+
+### **Demonstration**
+- Watch a video demonstration of the project [here](https://drive.google.com/file/d/1UTHbLKF0OUMFRKTS92f9uY2nt9AaHBLE/view?usp=sharing).
+
+### **Experiment Tracking**
+- View all model experiments and their results on Dagshub [here](https://dagshub.com/dakshvandanarathi/YT-Sentiment-Analyser.mlflow/#/experiments/0?searchFilter=&orderByKey=attributes.start_time&orderByAsc=false&startTime=ALL&lifecycleFilter=Deleted&modelVersionFilter=All+Runs&datasetsFilter=W10%3D).
 
 
 ## Project Structure
@@ -256,8 +303,6 @@ The use of a multi-stage build optimizes the Docker image by separating the buil
 
 This GitHub Actions pipeline automates the deployment and testing of a machine learning model as a FastAPI service with integration to AWS services such as S3, ECR, and CodeDeploy.
 
----
-
 #### 🔍 **Pipeline Steps**
 
 1. **Checkout Code**
@@ -335,8 +380,6 @@ This GitHub Actions pipeline automates the deployment and testing of a machine l
 #### 📤 **AWS CodeDeploy Integration**
 
 21. **Deploy to AWS CodeDeploy** : Initiates deployment through AWS CodeDeploy, specifying the application, deployment group, and configuration settings.
-
---- 
 
 This pipeline ensures seamless integration and deployment by leveraging GitHub Actions, DVC, AWS services, and Docker, automating every step from preprocessing to deployment, while running rigorous tests at each stage.
 
