@@ -7,7 +7,7 @@ name = "sentiment_analysis"
 version = "0.0.1"
 description = "A machine learning project for sentiment analysis of comments"
 authors = [
-  { name = "Daksh Rathi" },
+  { name = "Maaz Shaikh" },
 ]
 
 readme = "README.md"

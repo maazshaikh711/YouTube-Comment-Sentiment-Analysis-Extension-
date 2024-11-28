@@ -88,9 +88,7 @@ This sentiment analysis project aims to classify YouTube comments into **positiv
   - **DVC** enables efficient data and model version control, improving pipeline reproducibility and collaboration.
   - Experiments and model tracking are integrated with **Dagshub**, providing an interactive dashboard for managing model lifecycle and monitoring metrics.
 
-- **Frontend Integration**:
-  - A **Chrome Plugin** acts as the user-facing frontend, interacting with the backend for predictions.  
-  - Explore the [frontend repository here](https://github.com/DakshRathi/YT-Chrome-Plugin-Frontend).
+-
 
 ### **Deployment**
 - **Continuous Integration and Deployment (CI/CD)**:
@@ -115,8 +113,6 @@ docker pull public.ecr.aws/m3t3s7a1/yt-plugin:latest
 ### **Demonstration**
 - Watch a video demonstration of the project [here](https://drive.google.com/file/d/1UTHbLKF0OUMFRKTS92f9uY2nt9AaHBLE/view?usp=sharing).
 
-### **Experiment Tracking**
-- View all model experiments and their results on Dagshub [here](https://dagshub.com/dakshvandanarathi/YT-Sentiment-Analyser.mlflow/#/experiments/0?searchFilter=&orderByKey=attributes.start_time&orderByAsc=false&startTime=ALL&lifecycleFilter=Deleted&modelVersionFilter=All+Runs&datasetsFilter=W10%3D).
 
 
 ## Project Structure
